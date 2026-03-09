@@ -41,6 +41,201 @@ inference_transform = transforms.Compose([
 
 
 # ============================================================
+# Custom CSS — Professional Styling
+# ============================================================
+def inject_custom_css():
+    st.markdown("""
+    <style>
+    /* ---------- Google Font ---------- */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    /* ---------- Global ---------- */
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* ---------- Main header banner ---------- */
+    .main-header {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        padding: 2rem 2rem 1.5rem 2rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        text-align: center;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    .main-header h1 {
+        color: #e2e8f0;
+        font-weight: 700;
+        font-size: 1.9rem;
+        margin: 0 0 0.4rem 0;
+        letter-spacing: -0.02em;
+    }
+    .main-header p {
+        color: #94a3b8;
+        font-size: 0.95rem;
+        margin: 0;
+        font-weight: 400;
+    }
+
+    /* ---------- Section cards ---------- */
+    .section-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 1.4rem;
+        margin-bottom: 1rem;
+    }
+
+    /* ---------- Metric cards ---------- */
+    div[data-testid="stMetric"] {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border: 1px solid #bae6fd;
+        border-radius: 10px;
+        padding: 0.8rem 1rem;
+        text-align: center;
+    }
+    div[data-testid="stMetric"] label {
+        color: #0369a1 !important;
+        font-weight: 600 !important;
+        font-size: 0.8rem !important;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+    div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
+        color: #0c4a6e !important;
+        font-weight: 700 !important;
+    }
+
+    /* ---------- Sidebar ---------- */
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+    }
+    section[data-testid="stSidebar"] .stSelectbox label,
+    section[data-testid="stSidebar"] h1,
+    section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] h3,
+    section[data-testid="stSidebar"] p,
+    section[data-testid="stSidebar"] span,
+    section[data-testid="stSidebar"] .stMarkdown {
+        color: #e2e8f0 !important;
+    }
+
+    /* ---------- Footer ---------- */
+    .custom-footer {
+        text-align: center;
+        padding: 1rem 0 0.5rem 0;
+        color: #94a3b8;
+        font-size: 0.8rem;
+        border-top: 1px solid #e2e8f0;
+        margin-top: 2rem;
+    }
+
+    /* ---------- Info cards for hospitals ---------- */
+    .hospital-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 1.2rem;
+        text-align: center;
+        height: 100%;
+    }
+    .hospital-card h4 {
+        color: #1e293b;
+        margin-bottom: 0.3rem;
+    }
+    .hospital-card p {
+        color: #64748b;
+        font-size: 0.88rem;
+        margin: 0.2rem 0;
+    }
+
+    /* ---------- Prediction result boxes ---------- */
+    .pred-benign {
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border: 1px solid #6ee7b7;
+        border-radius: 10px;
+        padding: 1rem 1.2rem;
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+    .pred-benign h3 { color: #065f46; margin: 0; }
+    .pred-benign p { color: #047857; margin: 0.3rem 0 0 0; font-size: 0.9rem; }
+
+    .pred-malignant {
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+        border: 1px solid #fca5a5;
+        border-radius: 10px;
+        padding: 1rem 1.2rem;
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+    .pred-malignant h3 { color: #991b1b; margin: 0; }
+    .pred-malignant p { color: #b91c1c; margin: 0.3rem 0 0 0; font-size: 0.9rem; }
+
+    /* ---------- Architecture code blocks ---------- */
+    .arch-block {
+        background: #1e293b;
+        color: #e2e8f0;
+        border-radius: 8px;
+        padding: 1rem 1.2rem;
+        font-family: 'Courier New', monospace;
+        font-size: 0.82rem;
+        line-height: 1.6;
+        white-space: pre;
+        overflow-x: auto;
+    }
+
+    /* ---------- Smooth dividers ---------- */
+    hr {
+        border: none;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #cbd5e1, transparent);
+        margin: 1.5rem 0;
+    }
+
+    /* ---------- Subtle table styling ---------- */
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+    th {
+        background: #f1f5f9 !important;
+        color: #334155 !important;
+        font-weight: 600 !important;
+        font-size: 0.85rem;
+    }
+    td {
+        font-size: 0.85rem;
+        color: #475569 !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+
+# ============================================================
+# Reusable Components
+# ============================================================
+def render_header():
+    """Render the main page header."""
+    st.markdown("""
+    <div class="main-header">
+        <h1>🔬 Federated Skin Cancer Detection System</h1>
+        <p>AI-based skin cancer classification using Federated Learning and Hybrid CNN–Transformer models.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+def render_footer():
+    """Render the page footer."""
+    st.markdown("""
+    <div class="custom-footer">
+        Final Year Project — <strong>Federated Disease Detection using Advanced AI Models</strong><br>
+        Hybrid CNN + Transformer &nbsp;·&nbsp; Federated Averaging &nbsp;·&nbsp; HAM10000 Dataset
+    </div>
+    """, unsafe_allow_html=True)
+
+
+# ============================================================
 # Model Loading
 # ============================================================
 @st.cache_resource
@@ -82,89 +277,74 @@ def load_metrics(path):
 # Page 1 — Project Overview
 # ============================================================
 def page_overview():
-    st.markdown(
-        "<h1 style='text-align:center;'>🔬 Federated Disease Detection</h1>",
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        "<h3 style='text-align:center; color:gray;'>"
-        "Using Advanced AI Models for Privacy-Preserving Skin Cancer Classification"
-        "</h3>",
-        unsafe_allow_html=True,
-    )
+    render_header()
 
-    st.divider()
-
-    # Project description
     st.subheader("📋 About This Project")
     st.markdown("""
-    This project implements a **Federated Learning** framework for skin cancer detection 
-    that enables multiple hospitals to collaboratively train a shared diagnostic model 
+    This project implements a **Federated Learning** framework for skin cancer detection
+    that enables multiple hospitals to collaboratively train a shared diagnostic model
     **without exchanging patient data**.
 
-    The system uses the **HAM10000** dermoscopy dataset and classifies skin lesions 
+    The system uses the **HAM10000** dermoscopy dataset and classifies skin lesions
     into two categories: **Benign** and **Malignant**.
     """)
 
-    # Architecture
+    st.divider()
+
+    # ---- Architecture (two-column) ----
     col1, col2 = st.columns(2)
 
     with col1:
         st.subheader("🏗️ Model Architecture")
         st.markdown("""
-        **Hybrid CNN + Transformer**
-
-        ```
-        Input Image (224×224)
-              ↓
-        ResNet50 Backbone
-        (Feature Extraction)
-              ↓
-        1×1 Conv Projection
-        (2048 → 512 channels)
-              ↓
-        Positional Encoding
-              ↓
-        Transformer Encoder
-        (2 layers, 8 heads)
-              ↓
-        Global Average Pooling
-              ↓
-        Classification Head
-              ↓
-        Output: Benign / Malignant
-        ```
-        """)
+<div class="arch-block">Input Image (224×224)
+       ↓
+ResNet-50 Backbone
+(Feature Extraction)
+       ↓
+1×1 Conv Projection
+(2048 → 512 channels)
+       ↓
+Positional Encoding
+       ↓
+Transformer Encoder
+(2 layers, 8 heads)
+       ↓
+Global Average Pooling
+       ↓
+Classification Head
+       ↓
+Output: Benign / Malignant</div>
+        """, unsafe_allow_html=True)
 
     with col2:
         st.subheader("🏥 Federated Learning")
         st.markdown("""
-        **FedAvg across 3 Hospitals**
+<div class="arch-block">Global Model (Server)
+       ↓
+ ┌─────┼─────┐
+ ↓     ↓     ↓
+H_A   H_B   H_C
+(train locally)
+ ↓     ↓     ↓
+ └─────┼─────┘
+       ↓
+Federated Averaging
+       ↓
+Updated Global Model</div>
+        """, unsafe_allow_html=True)
 
-        ```
-        Global Model (Server)
-              ↓
-        ┌─────┼─────┐
-        ↓     ↓     ↓
-        H_A   H_B   H_C
-        (train locally)
-        ↓     ↓     ↓
-        └─────┼─────┘
-              ↓
-        Federated Averaging
-              ↓
-        Updated Global Model
-        ```
-
+        st.markdown("")
+        st.markdown("""
         **Hospital Data Distribution (Non-IID):**
-        - 🏥 Hospital A: Mostly benign
-        - 🏥 Hospital B: Mostly malignant
-        - 🏥 Hospital C: Mixed
+        - 🏥 Hospital A — Mostly benign
+        - 🏥 Hospital B — Mostly malignant
+        - 🏥 Hospital C — Mixed
         """)
 
     st.divider()
 
-    # Dataset info
+    # ---- Dataset ----
     st.subheader("📊 Dataset — HAM10000")
     col1, col2, col3 = st.columns(3)
     col1.metric("Total Images", "10,015")
@@ -178,7 +358,7 @@ def page_overview():
     | **Benign** | Melanocytic Nevi (nv), Benign Keratosis (bkl), Dermatofibroma (df), Vascular (vasc) |
     """)
 
-    # Models compared
+    # ---- Models compared ----
     st.divider()
     st.subheader("🔄 Models Compared")
     st.markdown("""
@@ -189,21 +369,19 @@ def page_overview():
     | 3 | Federated Hybrid (FedAvg) | Federated Learning | ~28.8M |
     """)
 
+    render_footer()
+
 
 # ============================================================
 # Page 2 — Image Prediction
 # ============================================================
 def page_prediction():
-    st.markdown(
-        "<h1 style='text-align:center;'>🔬 Skin Lesion Prediction</h1>",
-        unsafe_allow_html=True,
-    )
-    st.markdown(
-        "<p style='text-align:center; color:gray;'>"
+    render_header()
+
+    st.subheader("🔍 Skin Lesion Prediction")
+    st.caption(
         "Upload a dermoscopic image to classify it as Benign or Malignant "
         "using the Hybrid CNN + Transformer model."
-        "</p>",
-        unsafe_allow_html=True,
     )
 
     st.divider()
@@ -214,12 +392,12 @@ def page_prediction():
             f"Model file not found: `{MODEL_PATH}`\n\n"
             "Please run `python train_hybrid.py` first."
         )
+        render_footer()
         return
 
     # Upload
-    st.subheader("📷 Upload Image")
     uploaded_file = st.file_uploader(
-        "Choose a skin lesion image...",
+        "Choose a skin lesion image…",
         type=["jpg", "jpeg", "png", "bmp"],
     )
 
@@ -232,24 +410,30 @@ def page_prediction():
             st.image(image, caption="Uploaded Image", use_container_width=True)
 
         with col_pred:
-            with st.spinner("Analyzing image..."):
+            with st.spinner("Analyzing image…"):
                 model, device = load_model()
                 prediction, prob = predict(image, model, device)
 
-            # Prediction result
-            st.subheader("Prediction")
-
+            # Prediction result — styled
             if prediction == "Benign":
-                st.success(f"✅ **{prediction}**")
-                st.metric("Confidence", f"{(1 - prob)*100:.1f}%")
+                confidence = (1 - prob) * 100
+                st.markdown(f"""
+                <div class="pred-benign">
+                    <h3>✅ Benign</h3>
+                    <p>Confidence: {confidence:.1f}%</p>
+                </div>
+                """, unsafe_allow_html=True)
             else:
-                st.error(f"⚠️ **{prediction}**")
-                st.metric("Confidence", f"{prob*100:.1f}%")
+                confidence = prob * 100
+                st.markdown(f"""
+                <div class="pred-malignant">
+                    <h3>⚠️ Malignant</h3>
+                    <p>Confidence: {confidence:.1f}%</p>
+                </div>
+                """, unsafe_allow_html=True)
 
-            # Probability
             st.subheader("Probability")
             st.progress(prob, text=f"Malignant: {prob*100:.1f}%")
-
             st.caption(f"**Malignant probability:** {prob:.4f}")
 
         st.divider()
@@ -258,15 +442,17 @@ def page_prediction():
             "It is NOT a substitute for professional medical diagnosis."
         )
 
+    render_footer()
+
 
 # ============================================================
 # Page 3 — Model Results
 # ============================================================
 def page_results():
-    st.markdown(
-        "<h1 style='text-align:center;'>📊 Model Results</h1>",
-        unsafe_allow_html=True,
-    )
+    render_header()
+
+    st.subheader("📊 Model Performance Results")
+    st.caption("Comparison of centralized and federated model performance metrics.")
 
     st.divider()
 
@@ -279,9 +465,10 @@ def page_results():
         st.warning(
             "No results found. Please run `python generate_results.py` first."
         )
+        render_footer()
         return
 
-    # Comparison table
+    # ---- Comparison table ----
     st.subheader("📋 Performance Comparison")
 
     models_data = {}
@@ -292,7 +479,6 @@ def page_results():
     if fed_metrics:
         models_data["Federated Hybrid (FedAvg)"] = fed_metrics
 
-    # Build table
     table_md = "| Metric | " + " | ".join(models_data.keys()) + " |\n"
     table_md += "|---|" + "|".join(["---"] * len(models_data)) + "|\n"
 
@@ -311,8 +497,9 @@ def page_results():
 
     st.markdown(table_md)
 
-    # Key metrics cards
+    # ---- Key metrics cards ----
     if fed_metrics:
+        st.divider()
         st.subheader("🏆 Best Model — Federated Hybrid (FedAvg)")
         c1, c2, c3, c4, c5 = st.columns(5)
         c1.metric("Accuracy", f"{fed_metrics['accuracy']*100:.1f}%")
@@ -323,26 +510,23 @@ def page_results():
 
     st.divider()
 
-    # Plots
+    # ---- Comparison charts ----
     st.subheader("📈 Comparison Charts")
 
     col1, col2 = st.columns(2)
 
-    # Metric comparison bar chart
     if os.path.exists("results/comparison/metric_comparison.png"):
         with col1:
             st.image("results/comparison/metric_comparison.png",
                      caption="Model Performance Comparison",
                      use_container_width=True)
 
-    # ROC comparison
     if os.path.exists("results/comparison/roc_comparison.png"):
         with col2:
             st.image("results/comparison/roc_comparison.png",
                      caption="ROC Curve Comparison",
                      use_container_width=True)
 
-    # Training curves
     if os.path.exists("results/comparison/training_curves.png"):
         st.image("results/comparison/training_curves.png",
                  caption="Training Accuracy & Loss Curves",
@@ -350,7 +534,7 @@ def page_results():
 
     st.divider()
 
-    # Confusion matrices
+    # ---- Confusion matrices ----
     st.subheader("🔢 Confusion Matrices")
     cm_cols = st.columns(3)
 
@@ -367,7 +551,7 @@ def page_results():
 
     st.divider()
 
-    # Individual ROC curves
+    # ---- Individual ROC curves ----
     st.subheader("📉 Individual ROC Curves")
     roc_cols = st.columns(3)
 
@@ -382,23 +566,25 @@ def page_results():
             with roc_cols[i]:
                 st.image(path, caption=label, use_container_width=True)
 
+    render_footer()
+
 
 # ============================================================
 # Page 4 — Federated Learning Visualization
 # ============================================================
 def page_federated():
-    st.markdown(
-        "<h1 style='text-align:center;'>🏥 Federated Learning Visualization</h1>",
-        unsafe_allow_html=True,
-    )
+    render_header()
+
+    st.subheader("🏥 Federated Learning Visualization")
+    st.caption("Understanding the privacy-preserving federated training process.")
 
     st.divider()
 
-    # Federated overview
+    # ---- Training setup metrics ----
     st.subheader("📋 Federated Training Setup")
 
     col1, col2, col3 = st.columns(3)
-    col1.metric("Hospitals", "3")
+    col1.metric("Hospitals (Clients)", "3")
     col2.metric("Algorithm", "FedAvg")
     col3.metric("Communication Rounds", "5")
 
@@ -415,32 +601,44 @@ def page_federated():
 
     st.divider()
 
-    # Hospital data distribution
+    # ---- Hospital data distribution ----
     st.subheader("🏥 Hospital Data Distribution (Non-IID)")
 
     hosp_col1, hosp_col2, hosp_col3 = st.columns(3)
 
     with hosp_col1:
-        st.markdown("### Hospital A")
-        st.markdown("**General Practice**")
-        st.markdown("- 🟢 Mostly **Benign**")
-        st.markdown("- ~80% benign, ~20% malignant")
+        st.markdown("""
+        <div class="hospital-card">
+            <h4>🏥 Hospital A</h4>
+            <p><strong>General Practice</strong></p>
+            <p>🟢 Mostly <strong>Benign</strong></p>
+            <p>~80% benign · ~20% malignant</p>
+        </div>
+        """, unsafe_allow_html=True)
 
     with hosp_col2:
-        st.markdown("### Hospital B")
-        st.markdown("**Oncology Center**")
-        st.markdown("- 🔴 Mostly **Malignant**")
-        st.markdown("- ~40% benign, ~60% malignant")
+        st.markdown("""
+        <div class="hospital-card">
+            <h4>🏥 Hospital B</h4>
+            <p><strong>Oncology Center</strong></p>
+            <p>🔴 Mostly <strong>Malignant</strong></p>
+            <p>~40% benign · ~60% malignant</p>
+        </div>
+        """, unsafe_allow_html=True)
 
     with hosp_col3:
-        st.markdown("### Hospital C")
-        st.markdown("**Mixed Clinic**")
-        st.markdown("- 🟡 **Mixed** distribution")
-        st.markdown("- ~55% benign, ~45% malignant")
+        st.markdown("""
+        <div class="hospital-card">
+            <h4>🏥 Hospital C</h4>
+            <p><strong>Mixed Clinic</strong></p>
+            <p>🟡 <strong>Mixed</strong> distribution</p>
+            <p>~55% benign · ~45% malignant</p>
+        </div>
+        """, unsafe_allow_html=True)
 
     st.divider()
 
-    # Convergence plot
+    # ---- Convergence plot ----
     st.subheader("📈 Federated Convergence")
 
     if os.path.exists("results/federated_hybrid/federated_convergence.png"):
@@ -454,26 +652,26 @@ def page_federated():
 
     st.divider()
 
-    # FedAvg explanation
+    # ---- FedAvg explanation ----
     st.subheader("🔄 FedAvg Algorithm")
     st.markdown("""
     **Federated Averaging (FedAvg)** process:
-
-    ```
-    For each round t = 1, 2, ..., T:
-        1. Server sends global model to all clients
-        2. Each client trains locally for E epochs
-        3. Clients send updated weights back to server
-        4. Server averages all client weights:
-           w_global = (1/K) × Σ w_k
-        5. Updated global model is distributed
-    ```
-
-    **Key advantage:** Patient data **never leaves** the hospital.
-    Only model weight updates are communicated.
     """)
+    st.markdown("""
+<div class="arch-block">For each round t = 1, 2, …, T:
+  1. Server sends global model to all clients
+  2. Each client trains locally for E epochs
+  3. Clients send updated weights back to server
+  4. Server averages all client weights:
+     w_global = (1/K) × Σ w_k
+  5. Updated global model is distributed</div>
+    """, unsafe_allow_html=True)
 
-    # Results
+    st.markdown("")
+    st.info("🔒 **Key Advantage:** Patient data **never leaves** the hospital. "
+            "Only model weight updates are communicated.")
+
+    # ---- Results ----
     st.divider()
     st.subheader("🏆 Federated Model Results")
 
@@ -486,41 +684,66 @@ def page_federated():
         c4.metric("F1 Score", f"{fed_metrics['f1_score']*100:.1f}%")
         c5.metric("AUC-ROC", f"{fed_metrics['auc_roc']*100:.1f}%")
 
+    render_footer()
+
 
 # ============================================================
 # Main — Navigation
 # ============================================================
 def main():
     st.set_page_config(
-        page_title="Federated Skin Lesion Classifier",
+        page_title="Federated Skin Cancer Detection System",
         page_icon="🔬",
         layout="wide",
     )
 
-    # Sidebar navigation
-    st.sidebar.title("🔬 Navigation")
-    page = st.sidebar.radio(
-        "Go to",
+    # Inject custom styles
+    inject_custom_css()
+
+    # ---- Sidebar ----
+    st.sidebar.markdown("""
+    <div style="text-align:center; padding: 0.5rem 0 1rem 0;">
+        <span style="font-size: 2.2rem;">🔬</span><br>
+        <span style="font-size: 1rem; font-weight: 600; color: #e2e8f0; letter-spacing: 0.02em;">
+            Federated Disease<br>Detection System
+        </span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.sidebar.title("Navigation")
+
+    page = st.sidebar.selectbox(
+        "Select Page",
         [
-            "📋 Project Overview",
-            "🔍 Image Prediction",
-            "📊 Model Results",
-            "🏥 Federated Learning",
+            "Project Overview",
+            "Image Prediction",
+            "Model Results",
+            "Federated Learning",
         ],
     )
 
     st.sidebar.divider()
-    st.sidebar.caption("Federated Disease Detection")
-    st.sidebar.caption("Using Advanced AI Models")
 
-    # Route to page
-    if page == "📋 Project Overview":
+    # Sidebar info
+    st.sidebar.markdown("""
+    **Tech Stack**
+    - 🧠 PyTorch
+    - 🏗️ ResNet-50 + Transformer
+    - 🔄 Federated Averaging
+    - 📊 HAM10000 Dataset
+    """)
+
+    st.sidebar.divider()
+    st.sidebar.caption("© 2026 · Final Year Project")
+
+    # ---- Route to page ----
+    if page == "Project Overview":
         page_overview()
-    elif page == "🔍 Image Prediction":
+    elif page == "Image Prediction":
         page_prediction()
-    elif page == "📊 Model Results":
+    elif page == "Model Results":
         page_results()
-    elif page == "🏥 Federated Learning":
+    elif page == "Federated Learning":
         page_federated()
 
 
