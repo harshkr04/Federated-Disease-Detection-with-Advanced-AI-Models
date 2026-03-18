@@ -4,7 +4,9 @@ Evaluate trained models on the validation set.
 Compares:
   1. Centralized CNN (ResNet50)
   2. Centralized Hybrid (CNN + Transformer)
-  3. Federated Hybrid model
+  3. Federated Hybrid — FedAvg
+  4. Federated Hybrid — FedProx
+  5. Federated Hybrid — MOON
 
 Usage:
     python evaluate.py
@@ -14,6 +16,7 @@ import os
 import sys
 
 import torch
+import pandas as pd
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -72,12 +75,21 @@ def main():
 
     device = get_device()
 
-    # Models to evaluate
+    # Models to evaluate — now includes FedProx and MOON
     models_to_eval = [
-        ("weights/cnn_model.pth", "Baseline CNN (ResNet50)"),
-        ("weights/hybrid_model.pth", "Hybrid CNN + Transformer"),
-        ("weights/federated_global.pth", "Federated Hybrid (FedAvg)"),
+        ("weights/cnn_model.pth",       "Centralized CNN"),
+        ("weights/hybrid_model.pth",    "Centralized Hybrid"),
+        ("weights/fedavg_model.pth",    "FedAvg Hybrid"),
+        ("weights/fedprox_model.pth",   "FedProx Hybrid"),
+        ("weights/moon_model.pth",      "MOON Hybrid"),
     ]
+
+    # Fallback: also check old path for FedAvg
+    if not os.path.exists("weights/fedavg_model.pth") and \
+       os.path.exists("weights/federated_global.pth"):
+        models_to_eval[2] = (
+            "weights/federated_global.pth", "FedAvg Hybrid"
+        )
 
     all_results = {}
 
@@ -91,7 +103,10 @@ def main():
         print("\n" + "=" * 70)
         print("COMPARISON SUMMARY")
         print("=" * 70)
-        header = f"{'Model':<35s} {'Acc':>7s} {'Prec':>7s} {'Recall':>7s} {'F1':>7s} {'AUC':>7s}"
+        header = (
+            f"{'Model':<35s} {'Acc':>7s} {'Prec':>7s} "
+            f"{'Recall':>7s} {'F1':>7s} {'AUC':>7s}"
+        )
         print(header)
         print("-" * 70)
         for name, m in all_results.items():
@@ -105,6 +120,24 @@ def main():
             )
             print(row)
         print("=" * 70)
+
+    # ---------- Save to CSV ----------
+    if all_results:
+        os.makedirs("results", exist_ok=True)
+        rows = []
+        for name, m in all_results.items():
+            rows.append({
+                "Model": name,
+                "Accuracy": round(m["accuracy"], 4),
+                "Precision": round(m["precision"], 4),
+                "Recall": round(m["recall"], 4),
+                "F1-Score": round(m["f1_score"], 4),
+                "AUC-ROC": round(m["auc_roc"], 4),
+            })
+        df_results = pd.DataFrame(rows)
+        csv_path = "results/model_comparison.csv"
+        df_results.to_csv(csv_path, index=False)
+        print(f"\n✓ Comparison saved to {csv_path}")
 
 
 if __name__ == "__main__":

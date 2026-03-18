@@ -28,7 +28,20 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 # ============================================================
 CLASS_NAMES = ["Benign", "Malignant"]
 IMG_SIZE = 224
-MODEL_PATH = "weights/hybrid_model.pth"
+
+# Model paths for all 5 models
+MODEL_PATHS = {
+    "CNN": "weights/cnn_model.pth",
+    "Hybrid": "weights/hybrid_model.pth",
+    "FedAvg Hybrid": "weights/fedavg_model.pth",
+    "FedProx Hybrid": "weights/fedprox_model.pth",
+    "MOON Hybrid": "weights/moon_model.pth",
+}
+
+# Fallback for old FedAvg path
+if not os.path.exists(MODEL_PATHS["FedAvg Hybrid"]) and \
+   os.path.exists("weights/federated_global.pth"):
+    MODEL_PATHS["FedAvg Hybrid"] = "weights/federated_global.pth"
 
 inference_transform = transforms.Compose([
     transforms.Resize((224, 224)),
@@ -230,7 +243,7 @@ def render_footer():
     st.markdown("""
     <div class="custom-footer">
         Final Year Project — <strong>Federated Disease Detection using Advanced AI Models</strong><br>
-        Hybrid CNN + Transformer &nbsp;·&nbsp; Federated Averaging &nbsp;·&nbsp; HAM10000 Dataset
+        Hybrid CNN + Transformer &nbsp;·&nbsp; FedAvg · FedProx · MOON &nbsp;·&nbsp; HAM10000 Dataset
     </div>
     """, unsafe_allow_html=True)
 
@@ -239,10 +252,14 @@ def render_footer():
 # Model Loading
 # ============================================================
 @st.cache_resource
-def load_model():
-    """Load the Hybrid CNN + Transformer model."""
+def load_model(model_key):
+    """Load a model by its key name."""
+    model_path = MODEL_PATHS.get(model_key)
+    if model_path is None or not os.path.exists(model_path):
+        return None, None
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = torch.load(MODEL_PATH, map_location=device, weights_only=False)
+    model = torch.load(model_path, map_location=device, weights_only=False)
     model = model.to(device)
     model.eval()
     return model, device
@@ -287,6 +304,9 @@ def page_overview():
 
     The system uses the **HAM10000** dermoscopy dataset and classifies skin lesions
     into two categories: **Benign** and **Malignant**.
+
+    Three federated optimization algorithms are implemented and compared:
+    **FedAvg**, **FedProx**, and **MOON**.
     """)
 
     st.divider()
@@ -329,7 +349,7 @@ H_A   H_B   H_C
  ↓     ↓     ↓
  └─────┼─────┘
        ↓
-Federated Averaging
+FedAvg / FedProx / MOON
        ↓
 Updated Global Model</div>
         """, unsafe_allow_html=True)
@@ -367,6 +387,8 @@ Updated Global Model</div>
     | 1 | ResNet50 (Baseline) | Centralized CNN | ~23.5M |
     | 2 | Hybrid CNN + Transformer | Centralized Hybrid | ~28.8M |
     | 3 | Federated Hybrid (FedAvg) | Federated Learning | ~28.8M |
+    | 4 | Federated Hybrid (FedProx) | Federated Learning | ~28.8M |
+    | 5 | Federated Hybrid (MOON) | Federated Learning | ~28.8M |
     """)
 
     render_footer()
@@ -380,20 +402,32 @@ def page_prediction():
 
     st.subheader("🔍 Skin Lesion Prediction")
     st.caption(
-        "Upload a dermoscopic image to classify it as Benign or Malignant "
-        "using the Hybrid CNN + Transformer model."
+        "Upload a dermoscopic image to classify it as Benign or Malignant."
     )
 
     st.divider()
 
-    # Check model
-    if not os.path.exists(MODEL_PATH):
+    # Model selection dropdown
+    available_models = []
+    for key, path in MODEL_PATHS.items():
+        if os.path.exists(path):
+            available_models.append(key)
+
+    if not available_models:
         st.error(
-            f"Model file not found: `{MODEL_PATH}`\n\n"
-            "Please run `python train_hybrid.py` first."
+            "No trained model files found in `weights/`. "
+            "Please train at least one model first."
         )
         render_footer()
         return
+
+    selected_model = st.selectbox(
+        "🧠 Choose Model for Prediction",
+        available_models,
+        index=0,
+    )
+
+    st.divider()
 
     # Upload
     uploaded_file = st.file_uploader(
@@ -410,9 +444,15 @@ def page_prediction():
             st.image(image, caption="Uploaded Image", use_container_width=True)
 
         with col_pred:
-            with st.spinner("Analyzing image…"):
-                model, device = load_model()
+            with st.spinner(f"Analyzing with {selected_model}…"):
+                model, device = load_model(selected_model)
+                if model is None:
+                    st.error(f"Model `{selected_model}` could not be loaded.")
+                    render_footer()
+                    return
                 prediction, prob = predict(image, model, device)
+
+            st.caption(f"**Model:** {selected_model}")
 
             # Prediction result — styled
             if prediction == "Benign":
@@ -456,12 +496,22 @@ def page_results():
 
     st.divider()
 
-    # Load metrics
-    cnn_metrics = load_metrics("results/centralized/metrics.json")
-    hybrid_metrics = load_metrics("results/federated_cnn/metrics.json")
-    fed_metrics = load_metrics("results/federated_hybrid/metrics.json")
+    # Load metrics for all models
+    metrics_paths = {
+        "Centralized CNN": "results/centralized/metrics.json",
+        "Centralized Hybrid": "results/federated_cnn/metrics.json",
+        "FedAvg Hybrid": "results/federated_hybrid/metrics.json",
+        "FedProx Hybrid": "results/federated_fedprox/metrics.json",
+        "MOON Hybrid": "results/federated_moon/metrics.json",
+    }
 
-    if not any([cnn_metrics, hybrid_metrics, fed_metrics]):
+    models_data = {}
+    for name, path in metrics_paths.items():
+        m = load_metrics(path)
+        if m:
+            models_data[name] = m
+
+    if not models_data:
         st.warning(
             "No results found. Please run `python generate_results.py` first."
         )
@@ -470,14 +520,6 @@ def page_results():
 
     # ---- Comparison table ----
     st.subheader("📋 Performance Comparison")
-
-    models_data = {}
-    if cnn_metrics:
-        models_data["Centralized CNN"] = cnn_metrics
-    if hybrid_metrics:
-        models_data["Hybrid CNN+Transformer"] = hybrid_metrics
-    if fed_metrics:
-        models_data["Federated Hybrid (FedAvg)"] = fed_metrics
 
     table_md = "| Metric | " + " | ".join(models_data.keys()) + " |\n"
     table_md += "|---|" + "|".join(["---"] * len(models_data)) + "|\n"
@@ -496,17 +538,6 @@ def page_results():
         table_md += row + "\n"
 
     st.markdown(table_md)
-
-    # ---- Key metrics cards ----
-    if fed_metrics:
-        st.divider()
-        st.subheader("🏆 Best Model — Federated Hybrid (FedAvg)")
-        c1, c2, c3, c4, c5 = st.columns(5)
-        c1.metric("Accuracy", f"{fed_metrics['accuracy']*100:.1f}%")
-        c2.metric("Precision", f"{fed_metrics['precision']*100:.1f}%")
-        c3.metric("Recall", f"{fed_metrics['recall']*100:.1f}%")
-        c4.metric("F1 Score", f"{fed_metrics['f1_score']*100:.1f}%")
-        c5.metric("AUC-ROC", f"{fed_metrics['auc_roc']*100:.1f}%")
 
     st.divider()
 
@@ -527,6 +558,22 @@ def page_results():
                      caption="ROC Curve Comparison",
                      use_container_width=True)
 
+    # Individual metric charts
+    st.divider()
+    st.subheader("📊 Individual Metric Comparisons")
+    chart_cols = st.columns(3)
+
+    chart_files = [
+        ("results/plots/accuracy_comparison.png", "Accuracy Comparison"),
+        ("results/plots/auc_comparison.png", "AUC-ROC Comparison"),
+        ("results/plots/f1_comparison.png", "F1 Score Comparison"),
+    ]
+
+    for i, (path, label) in enumerate(chart_files):
+        if os.path.exists(path):
+            with chart_cols[i]:
+                st.image(path, caption=label, use_container_width=True)
+
     if os.path.exists("results/comparison/training_curves.png"):
         st.image("results/comparison/training_curves.png",
                  caption="Training Accuracy & Loss Curves",
@@ -536,35 +583,23 @@ def page_results():
 
     # ---- Confusion matrices ----
     st.subheader("🔢 Confusion Matrices")
-    cm_cols = st.columns(3)
 
     cm_files = [
         ("results/centralized/confusion_matrix.png", "Centralized CNN"),
-        ("results/federated_cnn/confusion_matrix.png", "Hybrid CNN+Transformer"),
-        ("results/federated_hybrid/confusion_matrix.png", "Federated Hybrid"),
+        ("results/federated_cnn/confusion_matrix.png", "Centralized Hybrid"),
+        ("results/federated_hybrid/confusion_matrix.png", "FedAvg Hybrid"),
+        ("results/federated_fedprox/confusion_matrix.png", "FedProx Hybrid"),
+        ("results/federated_moon/confusion_matrix.png", "MOON Hybrid"),
     ]
 
-    for i, (path, label) in enumerate(cm_files):
-        if os.path.exists(path):
-            with cm_cols[i]:
-                st.image(path, caption=label, use_container_width=True)
-
-    st.divider()
-
-    # ---- Individual ROC curves ----
-    st.subheader("📉 Individual ROC Curves")
-    roc_cols = st.columns(3)
-
-    roc_files = [
-        ("results/centralized/roc_curve.png", "Centralized CNN"),
-        ("results/federated_cnn/roc_curve.png", "Hybrid CNN+Transformer"),
-        ("results/federated_hybrid/roc_curve.png", "Federated Hybrid"),
-    ]
-
-    for i, (path, label) in enumerate(roc_files):
-        if os.path.exists(path):
-            with roc_cols[i]:
-                st.image(path, caption=label, use_container_width=True)
+    # Show in rows of 3
+    for row_start in range(0, len(cm_files), 3):
+        row_files = cm_files[row_start:row_start + 3]
+        cm_cols = st.columns(len(row_files))
+        for i, (path, label) in enumerate(row_files):
+            if os.path.exists(path):
+                with cm_cols[i]:
+                    st.image(path, caption=label, use_container_width=True)
 
     render_footer()
 
@@ -583,10 +618,11 @@ def page_federated():
     # ---- Training setup metrics ----
     st.subheader("📋 Federated Training Setup")
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
     col1.metric("Hospitals (Clients)", "3")
-    col2.metric("Algorithm", "FedAvg")
+    col2.metric("Algorithms", "FedAvg, FedProx, MOON")
     col3.metric("Communication Rounds", "5")
+    col4.metric("Local Epochs", "2")
 
     st.markdown("""
     | Parameter | Value |
@@ -595,8 +631,10 @@ def page_federated():
     | Total Parameters | ~28.8M |
     | Batch Size | 32 |
     | Learning Rate | 0.0001 |
-    | Local Epochs per Round | 2 |
     | Optimizer | Adam |
+    | FedProx μ | 0.01 |
+    | MOON λ | 0.5 |
+    | MOON τ | 0.5 |
     """)
 
     st.divider()
@@ -644,7 +682,7 @@ def page_federated():
     if os.path.exists("results/federated_hybrid/federated_convergence.png"):
         st.image(
             "results/federated_hybrid/federated_convergence.png",
-            caption="Federated Training Convergence Across Rounds",
+            caption="Federated Training Convergence — FedAvg vs FedProx vs MOON",
             use_container_width=True,
         )
     else:
@@ -652,12 +690,14 @@ def page_federated():
 
     st.divider()
 
-    # ---- FedAvg explanation ----
-    st.subheader("🔄 FedAvg Algorithm")
-    st.markdown("""
-    **Federated Averaging (FedAvg)** process:
-    """)
-    st.markdown("""
+    # ---- Algorithm explanations ----
+    st.subheader("🔄 Federated Optimization Algorithms")
+
+    tab1, tab2, tab3 = st.tabs(["FedAvg", "FedProx", "MOON"])
+
+    with tab1:
+        st.markdown("**Federated Averaging (FedAvg)**")
+        st.markdown("""
 <div class="arch-block">For each round t = 1, 2, …, T:
   1. Server sends global model to all clients
   2. Each client trains locally for E epochs
@@ -665,7 +705,40 @@ def page_federated():
   4. Server averages all client weights:
      w_global = (1/K) × Σ w_k
   5. Updated global model is distributed</div>
-    """, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
+
+    with tab2:
+        st.markdown("**Federated Proximal (FedProx)**")
+        st.markdown("""
+<div class="arch-block">Modifies local loss to include proximal term:
+  Loss = CrossEntropyLoss + (μ/2) × ||w_local − w_global||²
+
+  μ = 0.01 (proximal coefficient)
+
+  This regularizes local updates to stay close
+  to the global model, improving stability
+  under Non-IID data distributions.</div>
+        """, unsafe_allow_html=True)
+        st.info("🔧 FedProx improves convergence on heterogeneous (Non-IID) data "
+                "by penalizing large deviations from the global model.")
+
+    with tab3:
+        st.markdown("**Model-Contrastive Federated Learning (MOON)**")
+        st.markdown("""
+<div class="arch-block">Adds contrastive loss on model embeddings:
+  Loss = CrossEntropyLoss + λ × ContrastiveLoss
+
+  Positive pair: (local embedding, global embedding)
+  Negative pair: (local embedding, previous local embedding)
+
+  λ = 0.5 (contrastive weight)
+  τ = 0.5 (temperature)
+
+  Improves representation consistency between
+  local and global models.</div>
+        """, unsafe_allow_html=True)
+        st.info("🧠 MOON leverages contrastive learning to align local model "
+                "representations with the global model, reducing client drift.")
 
     st.markdown("")
     st.info("🔒 **Key Advantage:** Patient data **never leaves** the hospital. "
@@ -675,14 +748,22 @@ def page_federated():
     st.divider()
     st.subheader("🏆 Federated Model Results")
 
-    fed_metrics = load_metrics("results/federated_hybrid/metrics.json")
-    if fed_metrics:
-        c1, c2, c3, c4, c5 = st.columns(5)
-        c1.metric("Accuracy", f"{fed_metrics['accuracy']*100:.1f}%")
-        c2.metric("Precision", f"{fed_metrics['precision']*100:.1f}%")
-        c3.metric("Recall", f"{fed_metrics['recall']*100:.1f}%")
-        c4.metric("F1 Score", f"{fed_metrics['f1_score']*100:.1f}%")
-        c5.metric("AUC-ROC", f"{fed_metrics['auc_roc']*100:.1f}%")
+    fed_metrics = {
+        "FedAvg": load_metrics("results/federated_hybrid/metrics.json"),
+        "FedProx": load_metrics("results/federated_fedprox/metrics.json"),
+        "MOON": load_metrics("results/federated_moon/metrics.json"),
+    }
+
+    for algo_name, metrics in fed_metrics.items():
+        if metrics:
+            st.markdown(f"**{algo_name}**")
+            c1, c2, c3, c4, c5 = st.columns(5)
+            c1.metric("Accuracy", f"{metrics['accuracy']*100:.1f}%")
+            c2.metric("Precision", f"{metrics['precision']*100:.1f}%")
+            c3.metric("Recall", f"{metrics['recall']*100:.1f}%")
+            c4.metric("F1 Score", f"{metrics['f1_score']*100:.1f}%")
+            c5.metric("AUC-ROC", f"{metrics['auc_roc']*100:.1f}%")
+            st.markdown("")
 
     render_footer()
 
@@ -729,7 +810,7 @@ def main():
     **Tech Stack**
     - 🧠 PyTorch
     - 🏗️ ResNet-50 + Transformer
-    - 🔄 Federated Averaging
+    - 🔄 FedAvg · FedProx · MOON
     - 📊 HAM10000 Dataset
     """)
 

@@ -65,7 +65,21 @@ class HybridCNNTransformer(nn.Module):
             nn.Linear(d_model, num_classes),
         )
 
-    def forward(self, x):
+    def get_embedding(self, x):
+        """
+        Extract the d_model-dimensional embedding before the classification head.
+        Used by MOON for contrastive learning.
+        """
+        features = self.cnn_backbone(x)
+        features = self.feature_proj(features)
+        B, C, H, W = features.shape
+        features = features.flatten(2).permute(0, 2, 1)
+        features = features + self.pos_embedding
+        features = self.transformer_encoder(features)
+        features = features.mean(dim=1)  # (B, d_model)
+        return features
+
+    def forward(self, x, return_embedding=False):
         # CNN feature extraction
         features = self.cnn_backbone(x)          # (B, 2048, 7, 7)
 
@@ -83,10 +97,13 @@ class HybridCNNTransformer(nn.Module):
         features = self.transformer_encoder(features)  # (B, 49, d_model)
 
         # Global average pooling over the sequence
-        features = features.mean(dim=1)  # (B, d_model)
+        embedding = features.mean(dim=1)  # (B, d_model)
 
         # Classification
-        out = self.classifier(features)  # (B, num_classes)
+        out = self.classifier(embedding)  # (B, num_classes)
+
+        if return_embedding:
+            return out, embedding
         return out
 
 
