@@ -122,148 +122,208 @@ if not os.path.exists(MODELS_INFO["FedAvg Hybrid (HAM10000)"]["path"]) and \
 # ============================================================
 # Custom CSS — Professional Styling
 # ============================================================
-def inject_custom_css():
-    st.markdown("""
+def inject_custom_css(is_dark_mode=False):
+    if is_dark_mode:
+        globals_css = """
+        [data-testid="stAppViewContainer"] > section:first-child {
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+        [data-testid="stHeader"] {
+            background-color: #0f172a;
+        }
+        .stMarkdown p, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4, .stMarkdown li {
+            color: #e2e8f0 !important;
+        }
+        div[data-testid="stMetricValue"] {
+            color: #e0f2fe !important;
+        }
+        """
+        metric_bg = "linear-gradient(135deg, #1e293b 0%, #334155 100%)"
+        metric_label = "#93c5fd"
+        metric_val = "#e0f2fe"
+        info_bg = "#1e293b"
+        info_border = "#3b82f6"
+        info_header = "#f8fafc"
+        info_text = "#cbd5e1"
+        hosp_bg = "#1e293b"
+        hosp_border = "#334155"
+        hosp_header = "#f8fafc"
+        hosp_text = "#cbd5e1"
+        pred_benign_bg = "linear-gradient(135deg, #064e3b 0%, #065f46 100%)"
+        pred_benign_border = "#059669"
+        pred_benign_h3 = "#34d399"
+        pred_benign_p = "#6ee7b7"
+        pred_mal_bg = "linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%)"
+        pred_mal_border = "#dc2626"
+        pred_mal_h3 = "#f87171"
+        pred_mal_p = "#fca5a5"
+    else:
+        globals_css = ""
+        metric_bg = "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)"
+        metric_label = "#0369a1"
+        metric_val = "#0c4a6e"
+        info_bg = "#f8fafc"
+        info_border = "#3b82f6"
+        info_header = "#1e293b"
+        info_text = "#475569"
+        hosp_bg = "#ffffff"
+        hosp_border = "#e2e8f0"
+        hosp_header = "#1e293b"
+        hosp_text = "#64748b"
+        pred_benign_bg = "linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)"
+        pred_benign_border = "#6ee7b7"
+        pred_benign_h3 = "#065f46"
+        pred_benign_p = "#047857"
+        pred_mal_bg = "linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)"
+        pred_mal_border = "#fca5a5"
+        pred_mal_h3 = "#991b1b"
+        pred_mal_p = "#b91c1c"
+
+    st.markdown(f"""
     <style>
     /* ---------- Google Font ---------- */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
     /* ---------- Global ---------- */
-    html, body, [class*="css"] {
+    html, body, [class*="css"] {{
         font-family: 'Inter', sans-serif;
-    }
+    }}
+
+    {globals_css}
 
     /* ---------- Main header banner ---------- */
-    .main-header {
+    .main-header {{
         background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
         padding: 2rem 2rem 1.5rem 2rem;
         border-radius: 12px;
         margin-bottom: 1.5rem;
         text-align: center;
         border: 1px solid rgba(255,255,255,0.05);
-    }
-    .main-header h1 {
-        color: #e2e8f0;
+    }}
+    .main-header h1 {{
+        color: #e2e8f0 !important;
         font-weight: 700;
         font-size: 1.9rem;
         margin: 0 0 0.4rem 0;
         letter-spacing: -0.02em;
-    }
-    .main-header p {
-        color: #94a3b8;
+    }}
+    .main-header p {{
+        color: #94a3b8 !important;
         font-size: 0.95rem;
         margin: 0;
         font-weight: 400;
-    }
+    }}
 
     /* ---------- Metric cards ---------- */
-    div[data-testid="stMetric"] {
-        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    div[data-testid="stMetric"] {{
+        background: {metric_bg};
         border: 1px solid #bae6fd;
         border-radius: 10px;
         padding: 0.8rem 1rem;
         text-align: center;
-    }
-    div[data-testid="stMetric"] label {
-        color: #0369a1 !important;
+    }}
+    div[data-testid="stMetric"] label {{
+        color: {metric_label} !important;
         font-weight: 600 !important;
         font-size: 0.8rem !important;
         text-transform: uppercase;
         letter-spacing: 0.04em;
-    }
-    div[data-testid="stMetric"] div[data-testid="stMetricValue"] {
-        color: #0c4a6e !important;
+    }}
+    div[data-testid="stMetric"] div[data-testid="stMetricValue"] {{
+        color: {metric_val} !important;
         font-weight: 700 !important;
-    }
+    }}
 
     /* ---------- Sidebar ---------- */
-    section[data-testid="stSidebar"] {
+    section[data-testid="stSidebar"] {{
         background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-    }
+    }}
     section[data-testid="stSidebar"] .stSelectbox label,
     section[data-testid="stSidebar"] h1,
     section[data-testid="stSidebar"] h2,
     section[data-testid="stSidebar"] h3,
     section[data-testid="stSidebar"] p,
     section[data-testid="stSidebar"] span,
-    section[data-testid="stSidebar"] .stMarkdown {
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] .stMarkdown {{
         color: #e2e8f0 !important;
-    }
+    }}
 
     /* ---------- Footer ---------- */
-    .custom-footer {
+    .custom-footer {{
         text-align: center;
         padding: 1rem 0 0.5rem 0;
-        color: #94a3b8;
+        color: #94a3b8 !important;
         font-size: 0.8rem;
         border-top: 1px solid #e2e8f0;
         margin-top: 2rem;
-    }
+    }}
 
     /* ---------- Prediction result boxes ---------- */
-    .pred-benign {
-        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-        border: 1px solid #6ee7b7;
+    .pred-benign {{
+        background: {pred_benign_bg};
+        border: 1px solid {pred_benign_border};
         border-radius: 10px;
         padding: 1rem 1.2rem;
         text-align: center;
         margin-bottom: 0.5rem;
-    }
-    .pred-benign h3 { color: #065f46; margin: 0; }
-    .pred-benign p { color: #047857; margin: 0.3rem 0 0 0; font-size: 0.9rem; }
+    }}
+    .pred-benign h3 {{ color: {pred_benign_h3} !important; margin: 0; }}
+    .pred-benign p {{ color: {pred_benign_p} !important; margin: 0.3rem 0 0 0; font-size: 0.9rem; }}
 
-    .pred-malignant {
-        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-        border: 1px solid #fca5a5;
+    .pred-malignant {{
+        background: {pred_mal_bg};
+        border: 1px solid {pred_mal_border};
         border-radius: 10px;
         padding: 1rem 1.2rem;
         text-align: center;
         margin-bottom: 0.5rem;
-    }
-    .pred-malignant h3 { color: #991b1b; margin: 0; }
-    .pred-malignant p { color: #b91c1c; margin: 0.3rem 0 0 0; font-size: 0.9rem; }
+    }}
+    .pred-malignant h3 {{ color: {pred_mal_h3} !important; margin: 0; }}
+    .pred-malignant p {{ color: {pred_mal_p} !important; margin: 0.3rem 0 0 0; font-size: 0.9rem; }}
 
     /* ---------- Information Panel ---------- */
-    .info-panel {
-        background: #f8fafc;
-        border-left: 4px solid #3b82f6;
+    .info-panel {{
+        background: {info_bg};
+        border-left: 4px solid {info_border};
         padding: 1rem;
         border-radius: 4px;
         margin-bottom: 1rem;
-    }
-    .info-panel h4 {
+    }}
+    .info-panel h4 {{
         margin-top: 0;
-        color: #1e293b;
-    }
-    .info-panel p {
+        color: {info_header} !important;
+    }}
+    .info-panel p {{
         margin: 0.3rem 0;
-        color: #475569;
+        color: {info_text} !important;
         font-size: 0.9rem;
-    }
+    }}
 
     /* ---------- Hospital Cards ---------- */
-    .hospital-card {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
+    .hospital-card {{
+        background: {hosp_bg};
+        border: 1px solid {hosp_border};
         border-radius: 10px;
         padding: 1.2rem;
         text-align: center;
         height: 100%;
-    }
-    .hospital-card h4 {
-        color: #1e293b;
+    }}
+    .hospital-card h4 {{
+        color: {hosp_header} !important;
         margin-bottom: 0.3rem;
-    }
-    .hospital-card p {
-        color: #64748b;
+    }}
+    .hospital-card p {{
+        color: {hosp_text} !important;
         font-size: 0.88rem;
         margin: 0.2rem 0;
-    }
+    }}
 
     /* ---------- Architecture code blocks ---------- */
-    .arch-block {
+    .arch-block {{
         background: #1e293b;
-        color: #e2e8f0;
+        color: #e2e8f0 !important;
         border-radius: 8px;
         padding: 1rem 1.2rem;
         font-family: 'Courier New', monospace;
@@ -271,14 +331,14 @@ def inject_custom_css():
         line-height: 1.6;
         white-space: pre;
         overflow-x: auto;
-    }
+    }}
     
-    hr {
+    hr {{
         border: none;
         height: 1px;
         background: linear-gradient(90deg, transparent, #cbd5e1, transparent);
         margin: 1.5rem 0;
-    }
+    }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -385,6 +445,11 @@ def sidebar_model_selection():
             "Federated Learning",
         ],
     )
+
+    st.sidebar.divider()
+    
+    # Theme Toggle
+    st.sidebar.toggle("🌓 Toggle Dark Mode", key="dark_mode")
 
     st.sidebar.divider()
     st.sidebar.subheader("🧠 Active Model Selection")
@@ -729,7 +794,10 @@ def main():
         layout="wide",
     )
 
-    inject_custom_css()
+    if "dark_mode" not in st.session_state:
+        st.session_state.dark_mode = False
+
+    inject_custom_css(st.session_state.dark_mode)
 
     page, selected_model = sidebar_model_selection()
 

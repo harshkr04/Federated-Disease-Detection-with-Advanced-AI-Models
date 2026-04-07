@@ -45,3 +45,6 @@ hmnist_*.csv
 # OS files
 Thumbs.db
 .DS_Store
+
+# Ignore report folder
+project-report/
