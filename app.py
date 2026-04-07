@@ -15,6 +15,9 @@ import os
 import sys
 import json
 import torch
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
 from PIL import Image
 from torchvision import transforms
@@ -596,11 +599,13 @@ def page_overview():
     """)
 
     st.divider()
-    col1, col2 = st.columns(2)
+    
+    with st.expander("🛠️ View Architecture & Federated Setup Details", expanded=False):
+        col1, col2 = st.columns(2)
 
-    with col1:
-        st.subheader("🏗️ Model Architecture")
-        st.markdown("""
+        with col1:
+            st.subheader("🏗️ Model Architecture")
+            st.markdown("""
 <div class="arch-block">Input Image (224×224)
        ↓
 ResNet-50 Backbone
@@ -619,11 +624,11 @@ Global Average Pooling
 Classification Head
        ↓
 Output: Benign / Malignant</div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
 
-    with col2:
-        st.subheader("🏥 Federated Learning")
-        st.markdown("""
+        with col2:
+            st.subheader("🏥 Federated Topology")
+            st.markdown("""
 <div class="arch-block">Global Model (Server)
        ↓
  ┌─────┼─────┐
@@ -636,15 +641,15 @@ H_A   H_B   H_C
 FedAvg / FedProx / MOON
        ↓
 Updated Global Model</div>
-        """, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
 
-        st.markdown("")
-        st.markdown("""
-        **Hospital Data Distribution (Non-IID):**
-        - 🏥 Hospital A — Mostly benign
-        - 🏥 Hospital B — Mostly malignant
-        - 🏥 Hospital C — Mixed
-        """)
+            st.markdown("")
+            st.markdown("""
+            **Hospital Data Distribution (Non-IID):**
+            - 🏥 Hospital A — Mostly benign
+            - 🏥 Hospital B — Mostly malignant
+            - 🏥 Hospital C — Mixed
+            """)
 
     st.divider()
 
@@ -714,16 +719,60 @@ def page_results():
     st.markdown(table_md)
 
     st.divider()
-    st.subheader("📈 Comparison Charts")
+    st.subheader("📈 Interactive Comparison Charts")
 
-    col1, col2 = st.columns(2)
-    if os.path.exists("results/comparison/metric_comparison.png"):
-        with col1:
-            st.image("results/comparison/metric_comparison.png", caption="Model Performance Comparison", use_container_width=True)
+    df_data = []
+    for model_name, metrics in models_data.items():
+        for metric_key, metric_val in metrics.items():
+            if metric_key in ["accuracy", "precision", "recall", "f1_score", "auc_roc"]:
+                label = metric_key.replace("_", "-").upper()
+                if label == "F1-SCORE": label = "F1 Score"
+                if label == "AUC-ROC": label = "AUC-ROC"
+                if metric_key == 'accuracy': label = 'Accuracy'
+                df_data.append({
+                    "Model": model_name,
+                    "Metric": label,
+                    "Score": metric_val * 100
+                })
+    
+    if df_data:
+        df = pd.DataFrame(df_data)
+        tab_bar, tab_radar = st.tabs(["📊 Bar Chart", "🕸️ Radar Chart"])
+        
+        with tab_bar:
+            fig_bar = px.bar(
+                df, x="Metric", y="Score", color="Model", barmode="group",
+                labels={"Score": "Performance Score (%)"},
+                template="plotly_dark" if st.session_state.get('dark_mode', False) else "plotly_white",
+                color_discrete_sequence=px.colors.qualitative.Pastel
+            )
+            fig_bar.update_layout(yaxis=dict(range=[50, 100]), margin=dict(t=30, b=10))
+            st.plotly_chart(fig_bar, use_container_width=True)
 
-    if os.path.exists("results/comparison/roc_comparison.png"):
-        with col2:
-            st.image("results/comparison/roc_comparison.png", caption="ROC Curve Comparison", use_container_width=True)
+        with tab_radar:
+            fig_radar = go.Figure()
+            metrics_list = df["Metric"].unique().tolist()
+            for model_name in df["Model"].unique():
+                model_df = df[df["Model"] == model_name]
+                scores = []
+                for m in metrics_list:
+                    val = model_df[model_df["Metric"] == m]["Score"].values
+                    scores.append(val[0] if len(val) > 0 else 0)
+                
+                fig_radar.add_trace(go.Scatterpolar(
+                    r=scores + [scores[0]],
+                    theta=metrics_list + [metrics_list[0]],
+                    fill='toself',
+                    name=model_name
+                ))
+            fig_radar.update_layout(
+                polar=dict(radialaxis=dict(visible=True, range=[50, 100])),
+                template="plotly_dark" if st.session_state.get('dark_mode', False) else "plotly_white",
+                margin=dict(t=30, b=10)
+            )
+            st.plotly_chart(fig_radar, use_container_width=True)
+    else:
+        st.info("Insufficient data for interactive charts.")
 
     render_footer()
 
@@ -744,38 +793,45 @@ def page_federated():
     col4.metric("Local Epochs", "2")
 
     st.divider()
-    st.subheader("🏥 Hospital Data Distribution (Non-IID)")
 
-    hosp_col1, hosp_col2, hosp_col3 = st.columns(3)
-    with hosp_col1:
-        st.markdown("""
-        <div class="hospital-card">
-            <h4>🏥 Hospital A</h4>
-            <p><strong>General Practice</strong></p>
-            <p>🟢 Mostly <strong>Benign</strong></p>
-            <p>~80% benign · ~20% malignant</p>
-        </div>
-        """, unsafe_allow_html=True)
+    tab_hospitals, tab_algorithms = st.tabs(["🏥 Hospital Data Distribution (Non-IID)", "⚙️ Optimization Algorithms"])
 
-    with hosp_col2:
-        st.markdown("""
-        <div class="hospital-card">
-            <h4>🏥 Hospital B</h4>
-            <p><strong>Oncology Center</strong></p>
-            <p>🔴 Mostly <strong>Malignant</strong></p>
-            <p>~40% benign · ~60% malignant</p>
-        </div>
-        """, unsafe_allow_html=True)
+    with tab_hospitals:
+        hosp_col1, hosp_col2, hosp_col3 = st.columns(3)
+        with hosp_col1:
+            st.markdown("""
+            <div class="hospital-card">
+                <h4>🏥 Hospital A</h4>
+                <p><strong>General Practice</strong></p>
+                <p>🟢 Mostly <strong>Benign</strong></p>
+                <p>~80% benign · ~20% malignant</p>
+            </div>
+            """, unsafe_allow_html=True)
+        with hosp_col2:
+            st.markdown("""
+            <div class="hospital-card">
+                <h4>🏥 Hospital B</h4>
+                <p><strong>Oncology Center</strong></p>
+                <p>🔴 Mostly <strong>Malignant</strong></p>
+                <p>~40% benign · ~60% malignant</p>
+            </div>
+            """, unsafe_allow_html=True)
+        with hosp_col3:
+            st.markdown("""
+            <div class="hospital-card">
+                <h4>🏥 Hospital C</h4>
+                <p><strong>Mixed Clinic</strong></p>
+                <p>🟡 <strong>Mixed</strong> distribution</p>
+                <p>~55% benign · ~45% malignant</p>
+            </div>
+            """, unsafe_allow_html=True)
 
-    with hosp_col3:
+    with tab_algorithms:
         st.markdown("""
-        <div class="hospital-card">
-            <h4>🏥 Hospital C</h4>
-            <p><strong>Mixed Clinic</strong></p>
-            <p>🟡 <strong>Mixed</strong> distribution</p>
-            <p>~55% benign · ~45% malignant</p>
-        </div>
-        """, unsafe_allow_html=True)
+        - **FedAvg**: Simplest baseline. Averages model weights globally. It struggles noticeably with the highly imbalanced subsets.
+        - **FedProx**: Adds a proximal constraint term to restrict dramatic local updates, ensuring the global model remains stable when data is Non-IID.
+        - **MOON**: Relies on contrastive learning at the model representation level to correct local parameter drift, pulling local representations closer to the global model. Demonstrates the **best performance** on our highly skewed patient subsets.
+        """)
 
     st.divider()
     st.info("🔒 **Key Advantage:** Patient data **never leaves** the hospital. "
