@@ -25,7 +25,7 @@ paper/
 *.pdf
 
 # Results and weights folders
-results/
+
 weights/
 
 # Frontend (empty)

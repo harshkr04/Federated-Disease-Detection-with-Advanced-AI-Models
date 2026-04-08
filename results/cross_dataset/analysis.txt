@@ -1,0 +1,31 @@
+CROSS-DATASET VALIDATION ANALYSIS
+============================================================
+
+Datasets: HAM10000 (~10,015 images) vs ISIC (~2,239 images)
+Task: Binary Classification (Benign vs Malignant)
+
+Model: Centralized CNN
+  HAM10000:  Acc=90.26%, AUC=94.42%, F1=73.40%
+  ISIC:      Acc=69.49%, AUC=76.77%, F1=68.97%
+  Diff:      Acc=-20.77%, AUC=-17.65%, F1=-4.43%
+
+Model: Centralized Hybrid
+  HAM10000:  Acc=90.86%, AUC=95.03%, F1=77.27%
+  ISIC:      Acc=72.03%, AUC=76.65%, F1=71.79%
+  Diff:      Acc=-18.83%, AUC=-18.38%, F1=-5.47%
+
+Model: FedAvg Hybrid
+  HAM10000:  Acc=93.11%, AUC=97.69%, F1=80.40%
+  ISIC:      Acc=69.49%, AUC=77.98%, F1=70.00%
+  Diff:      Acc=-23.62%, AUC=-19.71%, F1=-10.40%
+
+Model: FedProx Hybrid
+  HAM10000:  Acc=93.56%, AUC=97.12%, F1=82.64%
+  ISIC:      Acc=66.95%, AUC=77.11%, F1=66.67%
+  Diff:      Acc=-26.61%, AUC=-20.01%, F1=-15.97%
+
+Model: MOON Hybrid
+  HAM10000:  Acc=94.06%, AUC=97.80%, F1=84.32%
+  ISIC:      Acc=70.34%, AUC=78.85%, F1=70.59%
+  Diff:      Acc=-23.72%, AUC=-18.95%, F1=-13.73%
+
